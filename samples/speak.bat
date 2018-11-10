@@ -5,38 +5,40 @@
 :: hybrid: wsf
 :: approach: safe
 
+:: v1.0.1
 :::Convert text to audible speech
 :::
-:::!{prog}! [-a] [-v voice] [-r rate] [-o outfile] [-f file | text...]
+:::!{prog}! [-a] [-v !ESC![4mvoice!ESC![m] [-r !ESC![4mrate!ESC![m] [-o !ESC![4moutfile!ESC![m] [-f !ESC![4mfile!ESC![m | !ESC![4mtext!ESC![m...]
 :::
-:::    This command uses the SAPI.SpVoice COM object to output text as spoken
-:::    audio or save it to a WAV file.
+:::    This command uses the SAPI.SpVoice COM object to bring text-to-speech
+:::    capabilities to the command line. The output audio can optionally be
+:::    saved to a WAV file.
 :::
 :::    If neither text nor -f is specified, input is read from the standard
 :::    input stream.
 :::
-:::OPTIONS
-:::    text
+:::!ESC![1mOPTIONS!ESC![m
+:::    !ESC![4mtext!ESC![m
 :::        Specify the text to be converted to audio. Multiple arguments will
 :::        be collected into a space separated string.
 :::
-:::    -f file, --input-file=file
+:::    -f !ESC![4mfile!ESC![m, --input-file=!ESC![4mfile!ESC![m
 :::        Specify the file to be spoken. The file may contain SAPI XML TTS
 :::        markup. See the link below. -f is ignored if both text and -f are
 :::        specified.
 :::
 :::        https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms717077(v=vs.85)
 :::
-:::    -v voice, --voice=voice
+:::    -v !ESC![4mvoice!ESC![m, --voice=!ESC![4mvoice!ESC![m
 :::        Specify the voice to be used. A list of voices can be obtained
 :::        by specifying '?' as the voice. If the voice cannot be found the
 :::        default voice is used.
 :::
-:::    -r rate, --rate=rate
+:::    -r !ESC![4mrate!ESC![m, --rate=!ESC![4mrate!ESC![m
 :::        The speech rate to use. Specify a number from -10 to 10 inclusive.
 :::        The default rate is 0.
 :::
-:::    -o file, --output-file=file
+:::    -o !ESC![4mfile!ESC![m, --output-file=!ESC![4mfile!ESC![m
 :::        Specify the path for a WAV audio file to be written.
 :::
 :::    -h, -?, --help
@@ -115,6 +117,7 @@ exit /b 0
 :usage [Section]
 setlocal EnableDelayedExpansion
 	set "{prog}=%~nx0"
+	for /f %%C in ('echo prompt $E^| cmd') do set "ESC=%%C"
 
 	if "%~1"=="" (
 		for /f "tokens=1,* delims=:" %%A in (' findstr -bn ":::[^:] :::$" "%~f0" ') do echo(%%B

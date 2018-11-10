@@ -4,7 +4,8 @@
 :: hybrid: js
 :: approach: fast
 
-:::!{prog}! [/n] [/fg [4mcolor[m] [/bg [4mcolor[m] [[4mstring...[m]
+:: v1.0.1
+:::!{prog}! [/n] [/fg [4mcolor[m] [/bg [4mcolor[m] [[4mstring[m...]
 :::
 :::[1mSYNOPSIS[m
 :::    Displays a custom message to the console.
