@@ -10,9 +10,6 @@ Set reTestLabel = New RegExp
 reTestLabel.Pattern = "^:test \d"
 reTestLabel.IgnoreCase = False
 
-Dim arrFiles
-arrFiles = Array()
-
 If colArgs.Unnamed.Count > 0 Then
 	For i = 0 To colArgs.Unnamed.Count - 1
 		strFileName = colArgs.Unnamed.Item(i)
@@ -22,24 +19,25 @@ If colArgs.Unnamed.Count > 0 Then
 		End If
 	Next
 Else
-	Set objFiles = fso.GetFolder(".").Files
-	ReDim arrFiles(objFiles.Count - 1)
+	Set colFiles = fso.GetFolder(".").Files
+	ReDim arrFiles(colFiles.Count - 1)
 
 	intCounter = 0
-	For Each objFile In objFiles
+	For Each objFile In colFiles
 		arrFiles(intCounter) = objFile
 		intCounter = intCounter + 1
 	Next
 End If
 
 For Each objFile In fso.GetFolder(".").Files
+	strFileFullName = objFile.Path
 	strFileName = objFile.Name
 	If strFileName <> WScript.ScriptName Then
 		If reFileMask.Test(strFileName) Then
 			strContent = ""
 			strTestNum = 1
 
-			With fso.OpenTextFile(objFile.Path)
+			With fso.OpenTextFile(strFileFullName)
 				Do Until .AtEndOfStream
 					strLine = .ReadLine
 
@@ -54,7 +52,13 @@ For Each objFile In fso.GetFolder(".").Files
 				.Close
 			End With
 
-			With fso.CreateTextFile(objFile.Path, True)
+			strBackupFileName = strFileFullName + ".bak"
+			If fso.FileExists(strBackupFileName) Then
+				fso.DeleteFile(strBackupFileName)
+			End If
+			fso.MoveFile strFileFullName, strBackupFileName
+
+			With fso.CreateTextFile(strFileFullName, True)
 				.Write(strContent)
 				.Close
 			End With
