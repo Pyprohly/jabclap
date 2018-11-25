@@ -8,9 +8,9 @@ Array.prototype.indexOf = function(needle) {
 	return -1
 }
 
-function namedArgument(str) {
+function isNamedArgument(str) {
 	if (str.length < 2) { return false }
-	return ~pairIndicator.indexOf(str.charAt(0)) ? true : false
+	return !!~pairIndicator.indexOf(str.charAt(0))
 }
 
 RegExp.escapePattern = /[-\/\\^$*+?.()|[\]{}]/g
@@ -28,47 +28,48 @@ var pairDelimiter = wsh.Environment('Process')('JABCLAP_PAIR_DELIMITER') || ':='
 var endOfOptionsMarker = wsh.Environment('Process')('JABCLAP_END_OF_OPTIONS_MARKER')
 if (/^\s+$/.test(endOfOptionsMarker)) { endOfOptionsMarker = false }
 
-var pairsExpectedList = (caseSensitive ? pairsExpected : pairsExpected.toLowerCase()).split(' ')
-var seen = {}
-var expectingKeyValue = false
-var pC = 0, nC = 0, qC = 0
+var expectFrom = (caseSensitive ? pairsExpected : pairsExpected.toLowerCase()).split(' ')
 var endOfOptions = /^\s+$/.test(pairIndicator)
+var delimRegex = new RegExp('[' + RegExp.escape(pairDelimiter) + ']')
 
+var output = ''
+var seen = {}
+var expectKeyValue = false
+var pC = 0, nC = 0, qC = 0
 for (i = 0; i < args.length; i++) {
 	var arg = args.Item(i)
-	WScript.Echo('[@' + (i + 1) + ']=' + arg)
+	output += '[@' + (i + 1) + ']=' + arg + '\n'
 
 	if (endOfOptionsMarker && (arg === endOfOptionsMarker)) {
 		endOfOptions = true
 		continue
 	}
 
-	if (expectingKeyValue) {
-		expectingKeyValue = false
-		// Perhaps a good idea to check that it's not a named argument
-		if (!namedArgument(arg)) {
-			WScript.Echo(
-				"[-'" + key + "']=" + ind
-				+ "\n[-'" + key + "'" + seen[key] + ']=' + ind
-				+ "\n['" + key + "']=" + arg
-				+ "\n['" + key + "'" + seen[key] + ']=' + arg
-			)
+	if (expectKeyValue) {
+		expectKeyValue = false
+
+		// Perhaps a good idea to check if it's not a named argument
+		if (!isNamedArgument(arg)) {
+			output += ("[-'" + key + "']=" + ind
+					+ "\n[-'" + key + "'" + seen[lkey] + ']=' + ind
+					+ "\n['" + key + "']=" + arg
+					+ "\n['" + key + "'" + seen[lkey] + ']=' + arg
+					+ '\n')
 			continue
 		}
 	}
 
-	// Not `else if` here because we still want to capture a named argument
-	// even if we were expecting a non-named argument
-	if (!endOfOptions && namedArgument(arg)) {
+	// Not `else if` here because we should still capture a named argument
+	// even if we were expecting a non-named argument.
+	if (!endOfOptions && isNamedArgument(arg)) {
 		// Attempt to split against any of the delimiters into a `key` and `value` part
 		var ind = arg.charAt(0)
 		var akey = arg.slice(1)
-		var d = arg.search(new RegExp('[' + RegExp.escape(pairDelimiter) + ']'))
-		// var sep = arg.charAt(d)
+		var d = arg.search(delimRegex)
+		// The separator character if ever needed
+		//var sep = arg.charAt(d)
 		var key = ~d ? arg.slice(1, d) : akey
 		var lkey = key.toLowerCase()
-		// var ckey = key
-		// if (!caseSensitive) { ckey = lkey }
 		var value = ~d ? akey.slice(d) : ''
 
 		nC++
@@ -77,80 +78,73 @@ for (i = 0; i < args.length; i++) {
 			seen[lkey]++
 		} else {
 			seen[lkey] = 1
-			WScript.Echo(
-				'[;' + ++qC + ']=' + key
-			)
+			output += '[;' + ++qC + ']=' + key + '\n'
 		}
 
-		WScript.Echo(
-			"[#'" + key + "']=" + seen[lkey]
-			+ "\n[?'" + key + "']=1"
-			+ "\n[?'" + key + "'" + seen[lkey] + ']=1'
-			+ "\n[-'" + key + "']=" + ind
-			+ "\n[-'" + key + "'" + seen[lkey] + ']=' + ind
-		)
+		output += ("[#'" + key + "']=" + seen[lkey]
+				+ "\n[?'" + key + "']=1"
+				+ "\n[?'" + key + "'" + seen[lkey] + ']=1'
+				+ "\n[-'" + key + "']=" + ind
+				+ "\n[-'" + key + "'" + seen[lkey] + ']=' + ind
+				+ '\n')
 
 		if (caseSensitive) {
-			WScript.Echo(
-				'[`' + lkey + '`' + seen[lkey] + ']=' + key
-				+ '\n[`' + lkey + '`]=' + key
-			)
+			output += ('[`' + lkey + '`' + seen[lkey] + ']=' + key
+					+ '\n[`' + lkey + '`]=' + key
+					+ '\n')
 		}
 
-		if (~pairsExpectedList.indexOf(caseSensitive ? key : lkey)) {
-			// It is a key-value pair
+		if (~expectFrom.indexOf(caseSensitive ? key : lkey)) {
+			// It's a key-value pair
+
 			if (value) {
-				WScript.Echo(
-					"['" + key + "']=" + value
-					+ "\n['" + key + "'" + seen[lkey] + ']=' + value
-				)
+				// The value is in this argument
+
+				output += ("['" + key + "']=" + value
+						+ "\n['" + key + "'" + seen[lkey] + ']=' + value
+						+ '\n')
 			} else {
 				if (~pairDelimiter.indexOf(' ')) {
 					// A value could not be found for the key-value pair, but
 					// if a space is one of the delimiters then we expect the
 					// next argument to be the value...
-					expectingKeyValue = true
+					expectKeyValue = true
 				}
-				// It's the most recent named argument that counts,
+				// Only the most recent named argument counts,
 				// so if it was previously set then unset it now.
-				WScript.Echo(
-					"['" + key + "']="
-				)
+				output += "['" + key + "']=" + '\n'
 			}
 		} else {
-			// It is a switch
-			WScript.Echo(
-				"['" + akey + "']=1"
-				+ "\n['" + akey + "'" + seen[lkey] + ']=1'
-			)
+			// It's a switch
+			output += ("['" + akey + "']=1"
+					+ "\n['" + akey + "'" + seen[lkey] + ']=1'
+					+ '\n')
 		}
 	} else {
-		// It is a positional argument
-		WScript.Echo(
-			'[' + ++pC + ']=' + arg
-		)
+		// It's a positional argument
+		output += '[' + ++pC + ']=' + arg + '\n'
 	}
 }
 
 var fso = new ActiveXObject('Scripting.FileSystemObject')
 var scriptName = WScript.ScriptName.replace(/\?\.wsf$/i, '')
 var scriptFullName = WScript.ScriptFullName.replace(/\?\.wsf$/i, '')
+output += ('[v]=1.0.1'
+		+ '\n[m]=cmd'
+		+ '\n[0]=' + scriptName
+		+ '\n[~n0]=' + fso.GetBaseName(scriptName)
+		+ '\n[~x0]=.' + fso.GetExtensionName(scriptName)
+		+ '\n[~nx0]=' + scriptName
+		+ '\n[~f0]=' + scriptFullName
+		+ '\n[~d0]=' + fso.GetDriveName(scriptFullName)
+		+ '\n[~dp0]=' + fso.GetParentFolderName(scriptFullName)
+		+ '\n[#a]=' + i
+		+ '\n[#@]=' + i
+		+ '\n[#p]=' + pC
+		+ '\n[#]=' + pC
+		+ '\n[#n]=' + nC
+		+ '\n[#q]=' + qC
+		+ '\n[#;]=' + qC
+		+ '\n')
 
-WScript.Echo(
-	'[v]=1.0'
-	+ '\n[m]=cmd'
-	+ '\n[0]=' + scriptName
-	+ '\n[~n0]=' + fso.GetBaseName(scriptName)
-	+ '\n[~x0]=' + '.' + fso.GetExtensionName(scriptName)
-	+ '\n[~nx0]=' + scriptName
-	+ '\n[~f0]=' + scriptFullName
-	+ '\n[~d0]=' + fso.GetDriveName(scriptFullName)
-	+ '\n[~dp0]=' + fso.GetParentFolderName(scriptFullName)
-	+ '\n[#a]=' + i
-	+ '\n[#@]=' + i
-	+ '\n[#p]=' + pC
-	+ '\n[#]=' + pC
-	+ '\n[#n]=' + nC
-	+ '\n[#q]=' + qC
-	+ '\n[#;]=' + qC
-)
+WScript.Echo(output)

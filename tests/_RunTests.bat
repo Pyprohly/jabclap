@@ -1,8 +1,11 @@
 @echo off
 setlocal
 
-set "parser=%~dp0\..\src\parser-cmd.js"
-set "filemask=cmd*.Tests.bat"
+set "parse_mode=cmd"
+REM set "parse_mode=unix"
+
+set "parser=%~dp0\..\src\parser-%parse_mode%.js"
+set "filemask=%parse_mode%*.Tests.bat"
 
 if not exist "%parser%" (
 	>&2 echo The parser file could not be found
