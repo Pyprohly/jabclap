@@ -1,31 +1,34 @@
+
 ## JScript-Assisted Batch file Command line Argument Parser
 
-Batch files are an effective means of creating custom commands, but due to the language’s limitations, handling arguments can be a difficult task. For this reason, command line interfaces in batch files are often implemented in strange ways that are vulnerable to breakage and prove to be unintuitive for the end user. This projects aims to solve these problems by bringing an intuitive argument handling system that allows you create robust and professional command line interfaces for your batch scripts while being easy to implement.
+Batch files are convenient for creating custom commands, but the limitations of the language can get in the way of designing good command line interfaces. The logic that often goes in to handling command line arguments in batch files tends to be written in a way that is susceptible to breakage, or lacks good design in order to simply the implementation. This project aims to solve these problems by bringing an intuitive argument handling system that lets you create robust and professional command line interfaces for your batch scripts, with logic that is easy to maintain.
 
-The JScript-Assisted Batch file Command line Argument Parser (JABCLAP) works by combining your batch project with an embedded JScript argument parsing script. The batch script calls the JScript parser and passes along the string of arguments given to the batch script. The JScript parser then processes the arguments, builds, and spits out the parsed arguments in an organised structure that your batch file can then use to prepare its environment for argument validation. No knowledge of JScript is required.
+The JScript-Assisted Batch file Command line Argument Parser (JABCLAP) works by embedding a JScript argument parsing script into your batch project. The batch script calls the JScript parser, passing along the string of arguments it received. The JScript parser processes the arguments: it builds and spits out the parsed arguments in an organised structure that your batch file can then read in and use to prepare its environment for argument validation and processing.
 
-This system overcomes many of the drawbacks a pure batch parsing solution might have. Here are some of the benefits and features of JABCLAP at a glance:
+No knowledge of JScript is needed.
 
-* **Validate passed arguments with ease**—and issue detailed command line syntax error messages.
-* **Resistant to breakage**—works in a variety of situations, or fails cleanly if it doesn’t.
-* **Supports key-value named arguments**—you can easily handle duplicate keys too.
-* **Supports named argument case sensitivity**—e.g., make option `-e` different  to `-E`.
-* **Intersperse named arguments with positional arguments**—a courtesy of the parser.
-* **Change the named arguments indicators**—make `+a` mean the opposite of `-a`.
-* **A parser to suit your CLI style**—try out the UNIX parser which does flag bundling (`-abc` <==> `-a -b -c`).
-* **Preserves the batch file’s parameter variables (`%1`, `%2`)**—still there when you need them.
-* **Consistent**—simple to use and understand.
+This system overcomes many of the drawbacks a pure batch solution might have. Some features of JABCLAP at a glance:
+
+* **Validate arguments with ease**—and also issue detailed custom command line syntax error messages.
+* **Resilient to breakage**—tries its best to work in a variety of situations.
+* **Support key-value named arguments**—supports duplicate key names too.
+* **Named argument case sensitivity**—e.g., allow `-e` to be different from `-E`.
+* **Intersperse named and positional arguments**—a courtesy of the parser.
+* **Custom named argument indicators**—e.g., make `+r` mean the opposite of `-r`.
+* **A parser for your CLI style**—bundle your flags with the UNIX parser (e.g., `-fsi` ⟺ `-f -s -i`)!
+* **Preserve batch file’s parameter variables (`%1`, `%2`)**—still there when you need them.
+* **Consistent and easy to maintain**—and simple enough to use and understand.
 
 ### Getting started
 
-JABCLAP works as an embedded JScript. To get the argument parser working in your batch project you need to turn your batch file into a JScript-Batch hybrid. This can be done by using the code in one of two hybrid files in the `src` folder: `hybrid-js.bat` or `hybrid-wsf.bat`.
+JABCLAP works as an embedded JScript. To get the argument parser working in your batch project you need to turn your batch file into a JScript–Batch hybrid. This can be done using the code in one of two hybrid files in the `src` folder: `hybrid-js.bat` or `hybrid-wsf.bat`.
 
-If your batch project is already a JScript hybrid then you’ll need to instead use the WSF hybrid to embed multiple JScript script files into a single script. One disadvantage you should be aware of when using the WSF hybrid as opposed to the JS hybrid is that some special characters will not be able to be used in the batch file portion, such as the escape character.
+If your batch project is already a JScript hybrid then you’ll need to use the WSF hybrid to embed a second JScript script. Be aware that if you decide to use the WSF hybrid you will not be able to use some special characters in your batch file.
 
-While the project can manually be pieced together from the files in the `src` folder, the easiest way to get a working template is to re-purpose one of the examples from the `build` directory.
+The project can be pieced together using the files in the `src` folder, but the easiest way to get a working template is to re-purpose an example script from `samples`.
 
 ```batchfile
-C:\JABCLAP\samples>template.bat arg1 arg2 /switch
+C:\jabclap\samples>template.bat arg1 arg2 /switch
 arg[#'switch']=1
 arg[#;]=1
 arg[#@]=3
@@ -41,13 +44,12 @@ arg[-'switch']=/
 arg[0]=template.bat
 arg[1]=arg1
 arg[2]=arg2
-arg[;1]=switch
 ...
 ```
 
 ### Configuring the argument parser
 
-Each parser has it’s own set of options. The available options and their effective equivalents are listed below.
+Each parser has it’s own set of options. The available options and their effective defaults are listed below.
 
 ```batchfile
 :: CMD parser
@@ -89,7 +91,7 @@ if %all% geq 1 (
 )
 ```
 
-Undefined variables in `set /a` will default to a value of `0`. It is important that percent expansion isn’t used here, otherwise a `Missing operand.` error may occur.
+Undefined variables in `set /a` will default to a value of `0`. It is important that percent expansion isn’t used here, otherwise if the second variable is empty then a `Missing operand.` error will occur.
 
 ### Working with key-value pairs
 
@@ -107,12 +109,12 @@ if defined arg['speed'] set /a speed=arg['speed']
 set "action=%arg['action']%"
 if "%action%"=="" set "action=walk"
 
-echo Do action %action% at speed %speed%
+echo %action% at speed %speed%
 ```
 
 ```
 C:\>file.bat /action:jump /speed:20
-Do action jump at speed 20
+jump at speed 20
 ```
 
 If the same named argument is specified multiple times then <code>%arg['<i>key</i>']%</code> will always expand the last value specified. The first value can still be accessed with <code>%arg['<i>key</i>'1]%</code>, and the second with <code>%arg['<i>key</i>'2]%</code>, and so on.
@@ -329,3 +331,4 @@ C:\>file.bat /a /b // /c /d
 Positional argument 1 is /c
 Positional argument 2 is /d
 ```
+
