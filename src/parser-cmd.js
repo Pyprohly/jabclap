@@ -36,8 +36,11 @@ var output = ''
 var seen = {}
 var expectKeyValue = false
 var pC = 0, nC = 0, qC = 0
+var allArgs = [], allPositionalArgs = []
 for (i = 0; i < args.length; i++) {
 	var arg = args.Item(i)
+	allArgs.push(arg)
+
 	output += '[@' + (i + 1) + ']=' + arg + '\n'
 
 	if (endOfOptionsMarker && (arg === endOfOptionsMarker)) {
@@ -122,6 +125,7 @@ for (i = 0; i < args.length; i++) {
 		}
 	} else {
 		// It's a positional argument
+		allPositionalArgs.push(arg)
 		output += '[' + ++pC + ']=' + arg + '\n'
 	}
 }
@@ -129,7 +133,7 @@ for (i = 0; i < args.length; i++) {
 var fso = new ActiveXObject('Scripting.FileSystemObject')
 var scriptName = WScript.ScriptName.replace(/\?\.wsf$/i, '')
 var scriptFullName = WScript.ScriptFullName.replace(/\?\.wsf$/i, '')
-output += ('[v]=1.0.1'
+output += ('[v]=1.1.0'
 		+ '\n[m]=cmd'
 		+ '\n[0]=' + scriptName
 		+ '\n[~n0]=' + fso.GetBaseName(scriptName)
@@ -145,6 +149,8 @@ output += ('[v]=1.0.1'
 		+ '\n[#n]=' + nC
 		+ '\n[#q]=' + qC
 		+ '\n[#;]=' + qC
+		+ '\n[@]=' + ('"' + allArgs.join('" "') + '"')
+		+ '\n[*]=' + ('"' + allPositionalArgs.join('" "') + '"')
 		+ '\n')
 
 WScript.Echo(output)

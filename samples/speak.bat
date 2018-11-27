@@ -5,7 +5,7 @@
 :: hybrid: wsf
 :: approach: safe
 
-:: v1.0.1
+:: v1.0.2
 :::Convert text to audible speech
 :::
 :::!{prog}! [-a] [-v !ESC![4mvoice!ESC![m] [-r !ESC![4mrate!ESC![m] [-o !ESC![4moutfile!ESC![m] [-f !ESC![4mfile!ESC![m | !ESC![4mtext!ESC![m...]
@@ -68,7 +68,7 @@ goto 2>nul & (
 	set "_args=%_args%"
 	setlocal EnableDelayedExpansion
 	for /f "delims=" %%I in (
-		'cscript.exe /nologo /job:cli-parser "!_f0!?.wsf" // !_args!'
+		'""%windir%\System32\cscript.exe" /nologo /job:cli-parser "!_f0!?.wsf" // !_args!"'
 	) do (
 		endlocal & endlocal
 		set "%~1%%I"
@@ -149,7 +149,7 @@ if not defined voice (
 )
 
 if "%voice%"=="?" (
-	cscript.exe /nologo /job:list-voices "%arg[~f0]%?.wsf"
+	"%windir%\System32\cscript.exe" /nologo /job:list-voices "%arg[~f0]%?.wsf"
 	exit /b 0
 )
 
@@ -208,7 +208,7 @@ if defined voice (
 
 set "err="
 for /f "delims=" %%I in ('
-	2^>^&1 cscript.exe /nologo /job:tts "%arg[~f0]%?.wsf" %arg_in_file% %arg_out_file% %arg_voice% /r:"%rate%" // !positionals!
+	2^>^&1 "%windir%\System32\cscript.exe" /nologo /job:tts "%arg[~f0]%?.wsf" %arg_in_file% %arg_out_file% %arg_voice% /r:"%rate%" // !positionals!
 ') do (
 	set "err=%%I"
 )

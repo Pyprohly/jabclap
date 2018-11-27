@@ -4,7 +4,7 @@
 :: hybrid: js
 :: approach: safe
 
-:: v1.0.1
+:: v1.0.2
 :::!{prog}! [/n] [/fg [4mcolor[m] [/bg [4mcolor[m] [[4mstring[m...]
 :::
 :::[1mSYNOPSIS[m
@@ -51,7 +51,7 @@ goto 2>nul & (
 	set "_args=%_args%"
 	setlocal EnableDelayedExpansion
 	for /f "delims=" %%I in (
-		'cscript.exe /nologo /e:jscript "!_f0!" // !_args!'
+		'""%windir%\System32\cscript.exe" /nologo /e:jscript "!_f0!" // !_args!"'
 	) do (
 		endlocal & endlocal
 		set "%~1%%I"

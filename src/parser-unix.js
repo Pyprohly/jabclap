@@ -13,7 +13,7 @@ function isNamedArgument(str) {
 	return !!~pairIndicator.indexOf(str.charAt(0))
 }
 
-function newNamedArgument() {
+function _newNamedArgument() {
 	nC++
 
 	if (seen.hasOwnProperty(lkey)) {
@@ -60,8 +60,11 @@ var output = ''
 var seen = {}
 var expectingKeyValue = false
 var pC = 0, nC = 0, qC = 0
+var allArgs = [], allPositionalArgs = []
 for (i = 0; i < args.length; i++) {
 	var arg = args.Item(i)
+	allArgs.push(arg)
+
 	output += '[@' + (i + 1) + ']=' + arg + '\n'
 
 	if (arg === '--') {
@@ -72,8 +75,7 @@ for (i = 0; i < args.length; i++) {
 	if (expectingKeyValue) {
 		expectingKeyValue = false
 		if (!isNamedArgument(arg)) {
-			output += (
-					"[-'" + key + "']=" + ind
+			output += ("[-'" + key + "']=" + ind
 					+ "\n[-'" + key + "'" + seen[lkey] + ']=' + ind
 					+ "\n['" + key + "']=" + arg
 					+ "\n['" + key + "'" + seen[lkey] + ']=' + arg
@@ -92,10 +94,11 @@ for (i = 0; i < args.length; i++) {
 		var value = ~d ? akey.slice(d) : ''
 
 		if (~expectFrom.indexOf(caseSensitive ? key : lkey)) {
-			newNamedArgument()
+			// It's a key-value pair
+
+			_newNamedArgument()
 			if (value) {
-				output += (
-						"['" + key + "']=" + value
+				output += ("['" + key + "']=" + value
 						+ "\n['" + key + "'" + seen[lkey] + ']=' + value
 						+ '\n')
 			} else {
@@ -105,22 +108,21 @@ for (i = 0; i < args.length; i++) {
 				}
 			}
 		} else if (bundleFlags && (/[a-z0-9]/i.test(arg.charAt(1)))) {
+			// It's a flag bundle. Expand it
+
 			for (var k = 0; k < akey.length; k++) {
 				key = akey.charAt(k)
 				lkey = key.toLowerCase()
 
 				// Stop processing flags at the first non-alphanumeric flag
-				if (/[^a-z0-9]/i.test(key)) {
-					break
-				}
+				if (/[^a-z0-9]/i.test(key)) { break }
 
-				newNamedArgument()
+				_newNamedArgument()
 
 				if (~expectFrom.indexOf(key)) {
 					value = akey.slice(k + 1)
 					if (value) {
-						output += (
-								"['" + key + "']=" + value
+						output += ("['" + key + "']=" + value
 								+ "\n['" + key + "'" + seen[lkey] + ']=' + value
 								+ '\n')
 					} else {
@@ -131,21 +133,23 @@ for (i = 0; i < args.length; i++) {
 					}
 					break
 				} else {
-					output += (
-							"['" + key + "']=1"
+					output += ("['" + key + "']=1"
 							+ "\n['" + key + "'" + seen[lkey] + ']=1'
 							+ '\n')
 				}
 			}
 		} else {
-			newNamedArgument()
+			// It's a switch
 
-			output += (
-					"['" + akey + "']=1"
+			_newNamedArgument()
+
+			output += ("['" + akey + "']=1"
 					+ "\n['" + akey + "'" + seen[lkey] + ']=1'
 					+ '\n')
 		}
 	} else {
+		// It's a positional argument
+		allPositionalArgs.push(arg)
 		output += '[' + ++pC + ']=' + arg + '\n'
 	}
 }
@@ -153,7 +157,7 @@ for (i = 0; i < args.length; i++) {
 var fso = new ActiveXObject('Scripting.FileSystemObject')
 var scriptName = WScript.ScriptName.replace(/\?\.wsf$/i, '')
 var scriptFullName = WScript.ScriptFullName.replace(/\?\.wsf$/i, '')
-output += ('[v]=1.0.1'
+output += ('[v]=1.1.0'
 		+ '\n[m]=unix'
 		+ '\n[0]=' + scriptName
 		+ '\n[~n0]=' + fso.GetBaseName(scriptName)
@@ -169,6 +173,8 @@ output += ('[v]=1.0.1'
 		+ '\n[#n]=' + nC
 		+ '\n[#q]=' + qC
 		+ '\n[#;]=' + qC
+		+ '\n[@]=' + ('"' + allArgs.join('" "') + '"')
+		+ '\n[*]=' + ('"' + allPositionalArgs.join('" "') + '"')
 		+ '\n')
 
 WScript.Echo(output)

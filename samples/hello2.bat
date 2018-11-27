@@ -4,7 +4,7 @@
 :: hybrid: js
 :: approach: fast
 
-:: v1.0.1
+:: v1.0.2
 :::!{prog}! [/n] [/fg [4mcolor[m] [/bg [4mcolor[m] [[4mstring[m...]
 :::
 :::[1mSYNOPSIS[m
@@ -61,7 +61,7 @@ set "args=%*" || (
 	exit /b 2
 )
 for /f "delims=" %%I in (
-	'cscript.exe /nologo /e:jscript "%~f0" // !args!'
+	'""%windir%\System32\cscript.exe" /nologo /e:jscript "%~f0" // !args!"'
 ) do (
 	set "arg%%I"
 )

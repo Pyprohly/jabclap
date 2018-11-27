@@ -28,7 +28,7 @@ goto 2>nul & (
 	set "_args=%_args%"
 	setlocal EnableDelayedExpansion
 	for /f "delims=" %%I in (
-		'cscript.exe /nologo /e:jscript "!_f0!" // !_args!'
+		'""%windir%\System32\cscript.exe" /nologo /e:jscript "!_f0!" // !_args!"'
 	) do (
 		endlocal & endlocal
 		set "%~1%%I"

@@ -29,7 +29,7 @@ goto 2>nul & ( %= REM 2 implicit `endlocal`s =%
 	set "_args=%_args%"
 	setlocal EnableDelayedExpansion
 	for /f "delims=" %%I in (
-		'cscript.exe /nologo /e:jscript "!_f0!" // !_args!'
+		'""%windir%\System32\cscript.exe" /nologo /e:jscript "!_f0!" // !_args!"'
 	) do (
 		endlocal & endlocal
 		set "%~1%%I"
@@ -71,7 +71,7 @@ if not "^!"=="^!^" (
 	exit /b 6
 )
 for /f "delims=" %%I in (
-	'cscript.exe /nologo /e:jscript "%~f0" // !args!'
+	'"%windir%\System32\cscript.exe" /nologo /e:jscript "%~f0" // !args!'
 ) do (
 	set "arg%%I"
 )

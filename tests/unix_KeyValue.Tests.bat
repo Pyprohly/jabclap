@@ -2,7 +2,7 @@
 setlocal DisableDelayedExpansion
 
 if not defined parser (
-	set "parser=%~dp0\..\src\parser-cmd.js"
+	set "parser=%~dp0\..\src\parser-unix.js"
 )
 
 set "JABCLAP_EXPECT_VALUE_FROM="

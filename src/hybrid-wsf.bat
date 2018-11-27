@@ -22,7 +22,7 @@ goto 2>nul & (
 	set "_args=%_args%"
 	setlocal EnableDelayedExpansion
 	for /f "delims=" %%I in (
-		'cscript.exe /nologo /job:cli-parser "!_f0!?.wsf" // !_args!'
+		'""%windir%\System32\cscript.exe" /nologo /job:cli-parser "!_f0!?.wsf" // !_args!"'
 	) do (
 		endlocal & endlocal
 		set "%~1%%I"
@@ -55,7 +55,7 @@ if not "^!"=="^!^" (
 	exit /b 6
 )
 for /f "delims=" %%I in (
-	'cscript.exe /nologo /job:cli-parser "%~f0?.wsf" // !args!'
+	'"%windir%\System32\cscript.exe" /nologo /job:cli-parser "%~f0?.wsf" // !args!'
 ) do (
 	set "arg%%I"
 )

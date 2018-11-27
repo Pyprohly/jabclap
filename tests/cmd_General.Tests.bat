@@ -65,6 +65,21 @@ set "args=foo "" " b r" /a:w /e /m: "" /e:"d y" /K V /E "baz" /F:2 qux /15"
 call :arg_parse arg args
 endlocal
 
+:test 4
+set "It=correctly stores a space separated list of arguments"
+setlocal EnableDelayedExpansion
+call :start_test
+set "value="foo" "" " b r" "/a:w" "/e" "/m:" "" "/e:d y" "/K" "V" "/E" "baz" "/F:2" "qux" "/15""
+if not "!arg[@]!"=="!value!" (
+	set /a fail+=1
+)
+set "value="foo" "" " b r" "" "baz" "qux""
+if not "!arg[*]!"=="!value!" (
+	set /a fail+=1
+)
+endlocal & set /a "fail=%fail%"
+call :end_test
+
 :test 1
 set "It=correctly counts the total number of arguments"
 call :start_test

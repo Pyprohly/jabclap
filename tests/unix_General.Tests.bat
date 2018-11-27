@@ -2,7 +2,7 @@
 setlocal DisableDelayedExpansion
 
 if not defined parser (
-	set "parser=%~dp0\..\src\parser-cmd.js"
+	set "parser=%~dp0\..\src\parser-unix.js"
 )
 
 set "JABCLAP_EXPECT_VALUE_FROM="
@@ -62,6 +62,21 @@ setlocal
 set "args=-aba -cdef foo --opt bar -- --opt --opt2 baz"
 call :arg_parse arg args
 endlocal
+
+:test 4
+set "It=correctly stores a space separated list of arguments"
+setlocal EnableDelayedExpansion
+call :start_test
+set "value="-aba" "-cdef" "foo" "--opt" "bar" "--" "--opt" "--opt2" "baz""
+if not "!arg[@]!"=="!value!" (
+	set /a fail+=1
+)
+set "value="foo" "bar" "--opt" "--opt2" "baz""
+if not "!arg[*]!"=="!value!" (
+	set /a fail+=1
+)
+endlocal & set /a "fail=%fail%"
+call :end_test
 
 :test 1
 set "It=correctly counts the total number of arguments"
